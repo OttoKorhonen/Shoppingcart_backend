@@ -56,7 +56,7 @@ To test this you can post the following in the above address with Postman:
 In order to get a single product by id, use `GET` methon:
 > http://127.0.0.1:5000/api/getproduct/id
 
-## Update Python and install Pip, Venv
+## Update Python and install Pip & Venv
 In order to update Python on your Linux machine open terminal and enter the following lines into Linux terminal window.
 
 To update your local package index:
@@ -97,6 +97,9 @@ After activation install Flask, SQLAlchemy and Psycopg2
 
 >pip install psycopg2
 
+All the necessary libraries can also be installed by entering the following command in the root of the project:
+> pip install -r requirements.txt
+
 
 In the terminal find folder src and in the folder app.py file. You can run the app.py by entering the following command in terminal:
 >python3 app.py
@@ -107,3 +110,13 @@ or
 
 After you don't need venv anymore deactivate it by typing the following in terminal:
 >deactivate
+
+## .env file
+You need to make .env file in the src folder. The .env file has to have the following things:
+>export APP_SETTINGS='config.DevelopmentConfig'
+
+>export DATABASE_URL='postgresql:///database path'
+
+>export SECRET_KEY='your secret key here'
+
+After the file is done, in terminal go to root folder and enter the lines above in the terminal. Now you should be able to run the program.

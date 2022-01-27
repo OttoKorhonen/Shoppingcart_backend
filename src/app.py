@@ -27,26 +27,25 @@ class Product(db.Model):
         return f' { self.product_name} {self.description} {self.price} {self.availability} {self.image_link} {self.condition} {self.brand}'
 
 
-# @app.before_first_request
-# def initDb():
-
-   # data = Product.query.all()
-
+@app.before_first_request
+def initDb():
     
-    # db.create_all()
-    # with open('dummy_data.json') as data:
-    #     data = json.load(data)
+    if not db.session.query(Product).first():
+    
+        db.create_all()
+        with open('dummy_data.json') as data:
+            data = json.load(data)
 
-    # for prod in data:
-    #     product = Product(**prod)
+        for prod in data:
+            product = Product(**prod)
 
-    #     db.session.add(product)
+            db.session.add(product)
 
-    # db.session.commit()
+        db.session.commit()
 
-    # return jsonify(data)
-
-#     return jsonify({'status:': 'ok'})
+        return jsonify(data)
+    
+    return jsonify({'status':'ok', 'message':'Database initialized'})
 
 
 @app.route('/api/add', methods=['POST'])
@@ -94,7 +93,6 @@ def edit_product(id=None):
 
 @app.route('/api/deleteproduct/<int:id>', methods=['DELETE'])
 def delete_product(id):
-    print(id)
     product = Product.query.get(id)
     db.session.delete(product)
     db.session.commit()
