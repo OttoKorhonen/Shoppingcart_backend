@@ -21,6 +21,9 @@ The endpoint is as follows:
 To delete product by id from store use `DELETE` method:
 > http://127.0.0.1:5000/api/deleteproduct/id
 
+To delete product from shoppingcart by id with `DELETE` method:
+> http://127.0.0.1:5000/api/shoppingcart/id
+
 To add product in the store, use `POST` method:
 > http://127.0.0.1:5000/api/add
 

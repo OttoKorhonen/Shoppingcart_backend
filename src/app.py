@@ -29,9 +29,9 @@ class Product(db.Model):
 
 @app.before_first_request
 def initDb():
-    
+
     if not db.session.query(Product).first():
-    
+
         db.create_all()
         with open('dummy_data.json') as data:
             data = json.load(data)
@@ -44,8 +44,8 @@ def initDb():
         db.session.commit()
 
         return jsonify(data)
-    
-    return jsonify({'status':'ok', 'message':'Database initialized'})
+
+    return jsonify({'status': 'ok', 'message': 'Database initialized'})
 
 
 @app.route('/api/add', methods=['POST'])
@@ -67,7 +67,7 @@ def add_to_products():
     db.session.add(product)
     db.session.commit()
 
-    return jsonify({'status': 'ok'})
+    return jsonify({'status': 200})
 
 
 @app.route('/api/edit/<int:id>', methods=['PUT'])
@@ -88,7 +88,7 @@ def edit_product(id=None):
     db.session.add(product)
     db.session.commit()
 
-    return jsonify({'status': 'ok', 'edited': id})
+    return jsonify({'status': 200, 'edited': id})
 
 
 @app.route('/api/deleteproduct/<int:id>', methods=['DELETE'])
@@ -96,7 +96,7 @@ def delete_product(id):
     product = Product.query.get(id)
     db.session.delete(product)
     db.session.commit()
-    return jsonify({'status': 'ok', 'deleted': id})
+    return jsonify({'status': 200, 'deleted': id})
 
 
 @app.route('/api/getproduct/<int:id>', methods=['GET'])
@@ -144,6 +144,21 @@ def shoppingcart():
     }
     current_cart = session.get("shoppingcart", {})
 
+    res = create_products(result, current_cart)
+
+    return jsonify(res)
+
+
+def get_product(id: int):
+    try:
+        if Product.query.get(id):
+            return Product.query.get(id)
+    except:
+        raise ValueError('Id not found')
+
+
+def create_products(result, current_cart):
+
     total = 0
 
     for productId in current_cart:
@@ -166,15 +181,7 @@ def shoppingcart():
 
     result["total"] = total
 
-    return jsonify(result)
-
-
-def get_product(id: int):
-    try:
-        if Product.query.get(id):
-            return Product.query.get(id)
-    except:
-        raise ValueError('Id not found')
+    return result
 
 
 @app.route("/api/shoppingcart", methods=['POST'])
@@ -189,7 +196,6 @@ def add_item_in_cart():
     current_cart = session.get('shoppingcart', {})
     new_item = request.get_json()
 
-
     try:
         new_product = get_product(new_item["id"])
         count = int(new_item.get("count", 1))
@@ -197,7 +203,7 @@ def add_item_in_cart():
             # sessio käyttää avaimina stringiä
             current_cart[str(new_product.id)] = count
             session["shoppingcart"] = current_cart
-            
+
         else:
             raise ValueError
 
@@ -206,25 +212,43 @@ def add_item_in_cart():
     except KeyError:
         result["status"] = f"Product by id {new_item['id']} couldn't be found."
 
+    res = create_products(result, current_cart)
+
+    return jsonify(res)
+
+
+@app.route('/api/shoppingcart/<int:id>', methods=['DELETE'])
+def delete_from_cart(id):
+    result = {
+        "products": [],
+        "total": 0,
+        "status": "Success"
+    }
+
+    current_cart = session.get("shoppingcart", {})
+
     total = 0
+    if str(id) in current_cart:
+        current_cart.pop(str(id))
+        session["shoppingcart"] = current_cart = current_cart
 
-    for productId in current_cart:
-        product = get_product(productId)
+        for productId in current_cart:
+            product = get_product(productId)
 
-        p = {
-            'id': int(product.id),
-            'product_name': product.product_name,
-            'availability': product.availability,
-            'price': product.price,
-            'description': product.description,
-            'image_link': product.image_link,
-            'brand': product.brand,
-            'condition': product.condition,
-            'count': current_cart[productId]
-        }
-        result["products"].append(p)
+            p = {
+                'id': int(product.id),
+                'product_name': product.product_name,
+                'availability': product.availability,
+                'price': product.price,
+                'description': product.description,
+                'image_link': product.image_link,
+                'brand': product.brand,
+                'condition': product.condition,
+                'count': current_cart[productId]
+            }
+            result["products"].append(p)
 
-        total += product.price * p["count"]
+            total += product.price * p["count"]
 
     result["total"] = total
 
